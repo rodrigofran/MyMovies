@@ -80,7 +80,7 @@ Siga os passos abaixo para rodar o **MyMovies** no seu ambiente local:
 
 1. **Clone o repositório**:
    ```bash
-   git clone https://github.com/seu-usuario/mymovies.git
+   git clone https://github.com/rodrigofran/MyMovies.git
    cd MyMovies
    cd MyMovies
    
