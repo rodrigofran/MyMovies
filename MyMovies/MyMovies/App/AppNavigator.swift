@@ -23,10 +23,10 @@ final class AppNavigator {
 
         if let items = tabBarController.tabBar.items {
             items[0].title = "Movies"
-            items[0].image = UIImage(named: "movieListIcon")
+            items[0].image = UIImage(systemName: "movieclapper.fill")
             
             items[1].title = "Favorites"
-            items[1].image = UIImage(named: "favoriteIcon")
+            items[1].image = UIImage(systemName: "heart.fill")
         }
 
         navigationController.setViewControllers([tabBarController], animated: true)

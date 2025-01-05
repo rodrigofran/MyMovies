@@ -1,5 +1,4 @@
 import Foundation
-import UIKit
 
 protocol MoviesListBusinessLogic {
     func viewDidLoad(isFirstFetch: Bool)
@@ -53,10 +52,24 @@ class MoviesListInteractor: MoviesListBusinessLogic {
                 
                 guard let results = movieResponse.results else { return }
                 
+                var loadedImages: [LoadedImage] = []
+                for result in results {
+                    async let posterImageData = self.loadImageData(for: result.posterPath)
+                    async let backdropImageData = self.loadImageData(for: result.backdropPath)
+                    
+                    let loadedImage = LoadedImage(
+                        movieID: result.id,
+                        posterImageData: try await posterImageData,
+                        backdropImageData: try await backdropImageData
+                    )
+                    
+                    loadedImages.append(loadedImage)
+                }
+                
                 if isFirstFetch {
-                    await presenter.presentMoviesList(results: results, favoriteMovieIDs: favoriteMovieIDs)
+                    await presenter.presentMoviesList(results: results, loadedImages: loadedImages, favoriteMovieIDs: favoriteMovieIDs)
                 } else {
-                    await presenter.presentNextMoviesList(results: results, favoriteMovieIDs: favoriteMovieIDs)
+                    await presenter.presentNextMoviesList(results: results, loadedImages: loadedImages, favoriteMovieIDs: favoriteMovieIDs)
                 }
                 
                 currentPage += 1
@@ -67,5 +80,12 @@ class MoviesListInteractor: MoviesListBusinessLogic {
             }
             
         }
+    }
+    
+    private func loadImageData(for path: String?) async throws -> Data? {
+        guard let path = path else { return nil }
+        let url = URL(string: "\(BaseURL.imageBaseURL)\(path)")!
+        let (data, _) = try await URLSession.shared.data(from: url)
+        return data
     }
 }

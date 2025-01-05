@@ -1,19 +1,21 @@
 import UIKit
 
+// MARK: - Protocol ViewController
 protocol MovieDetailDisplayLogic: AnyObject {
     func getMovieGenreIds() -> [Int]?
     func displayGenres(labelText: String?, hide: Bool)
-    func displayErrorFetchingGenres(error: Error)
+    func displayErrorFetchingGenres()
     func displaySavedFavoriteMovie(_ isFavorited: Bool)
     func displayRemovedFavoriteMovie(_ isFavorited: Bool)
     func displayErrorDatabase()
 }
 
-final class MovieDetailViewController: UIViewController, MovieDetailDisplayLogic {
+final class MovieDetailViewController: UIViewController {
+    
     // MARK: - Properties
     private let interactor: MovielDetailBusinessLogic
     private let movie: LoadedResult
-
+    
     // MARK: - UI Components
     private let toastView = ToastView()
     
@@ -125,6 +127,7 @@ final class MovieDetailViewController: UIViewController, MovieDetailDisplayLogic
         interactor.viewDidLoad()
     }
     
+    // MARK: - UI Setup
     private func setupUI() {
         view.backgroundColor = .white
         view.addSubview(mainImageView)
@@ -134,7 +137,7 @@ final class MovieDetailViewController: UIViewController, MovieDetailDisplayLogic
         mainImageView.translatesAutoresizingMaskIntoConstraints = false
         mainStackView.translatesAutoresizingMaskIntoConstraints = false
         bottomFavoriteButton.translatesAutoresizingMaskIntoConstraints = false
-
+        
         NSLayoutConstraint.activate([
             mainImageView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
             mainImageView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
@@ -160,11 +163,22 @@ final class MovieDetailViewController: UIViewController, MovieDetailDisplayLogic
         updateBottomFavoriteButton(movie.isFavorited)
     }
     
+    // MARK: - Actions
     private func setupBindings() {
         favoriteButton.addTarget(self, action: #selector(toggleFavorite), for: .touchUpInside)
         bottomFavoriteButton.addTarget(self, action: #selector(bottomButtonTapped), for: .touchUpInside)
     }
     
+    @objc private func toggleFavorite() {
+        guard let id = movie.id else { return }
+        try? interactor.addOrRemoveFavorites(movie: movie, id: id)
+    }
+    
+    @objc private func bottomButtonTapped() {
+        toggleFavorite()
+    }
+    
+    // MARK: - Helper Methods
     private func updateBottomFavoriteButton(_ isFavorited: Bool) {
         var config = bottomFavoriteButton.configuration
         if isFavorited {
@@ -179,17 +193,12 @@ final class MovieDetailViewController: UIViewController, MovieDetailDisplayLogic
         bottomFavoriteButton.configuration = config
     }
     
-    // MARK: - Actions
-    @objc private func toggleFavorite() {
-        guard let id = movie.id else { return }
-        try? interactor.addOrRemoveFavorites(movie: movie, id: id)
-    }
+}
+
+// MARK: - Display Logic Methods
+
+extension MovieDetailViewController: MovieDetailDisplayLogic {
     
-    @objc private func bottomButtonTapped() {
-        toggleFavorite()
-    }
-    
-    // MARK: - Display Logic Methods
     func getMovieGenreIds() -> [Int]? {
         return movie.genreIds
     }
@@ -206,7 +215,7 @@ final class MovieDetailViewController: UIViewController, MovieDetailDisplayLogic
         activityIndicator.stopAnimating()
     }
     
-    func displayErrorFetchingGenres(error: Error) {
+    func displayErrorFetchingGenres() {
         activityIndicator.stopAnimating()
         genresLabel.isHidden = true
         genresDivider.isHidden = true

@@ -1,5 +1,4 @@
 import UIKit
-import NetworkKit
 
 enum FavoritesConfigurator {
     static func configure() -> UIViewController  {

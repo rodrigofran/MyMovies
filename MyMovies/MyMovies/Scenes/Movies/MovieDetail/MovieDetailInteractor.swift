@@ -30,7 +30,7 @@ class MovieDetailInteractor: MovielDetailBusinessLogic {
                 let genres = try await apiWorker.fetchGenres()
                 presenter.presentAllGenres(genres.genres)
             } catch {
-                presenter.presentAllGenresWithError(error)
+                presenter.presentAllGenresWithError()
             }
             isLoading = false
         }

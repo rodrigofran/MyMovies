@@ -1,9 +1,4 @@
 import UIKit
-import NetworkKit
-
-protocol MoviesDetailConfiguratorProtocol {
-    static func configure(movie: LoadedResult) -> UIViewController
-}
 
 enum MoviesDetailConfigurator {
     static func configure(movie: LoadedResult) -> UIViewController  {

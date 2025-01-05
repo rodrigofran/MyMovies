@@ -1,7 +1,7 @@
 import UIKit
 
-protocol MovieListDisplayLogic: AnyObject {
-    
+// MARK: - Protocol ViewController
+protocol MoviesListDisplayLogic: AnyObject {
     func displayMovies(movies: [LoadedResult])
     func displayMoviesWithError()
     func displayNextMovies(movies: [LoadedResult])
@@ -11,14 +11,13 @@ protocol MovieListDisplayLogic: AnyObject {
 
 final class MoviesListViewController: UIViewController {
     
+    // MARK: - Properties
     private let interactor: MoviesListBusinessLogic
     private let router: MoviesListRoutingLogic
-    
     private var movies: [LoadedResult] = []
-    private var isSearching: Bool = false
     
+    // MARK: - UI Components
     private let errorView = ErrorView()
-    
     private let searchController: UISearchController = {
         let searchController = UISearchController(searchResultsController: nil)
         searchController.obscuresBackgroundDuringPresentation = false
@@ -33,7 +32,6 @@ final class MoviesListViewController: UIViewController {
         collectionView.backgroundColor = .white
         collectionView.alwaysBounceVertical = true
         collectionView.showsVerticalScrollIndicator = false
-
         return collectionView
     }()
     
@@ -52,6 +50,7 @@ final class MoviesListViewController: UIViewController {
     
     private let toastView = ToastView()
     
+    // MARK: - Init
     init(interactor: MoviesListBusinessLogic, router: MoviesListRoutingLogic) {
         self.interactor = interactor
         self.router = router
@@ -62,6 +61,7 @@ final class MoviesListViewController: UIViewController {
         fatalError("init(coder:) has not been implemented")
     }
     
+    // MARK: - View Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
         self.setupNavigationBar(title: "Movies List")
@@ -77,6 +77,7 @@ final class MoviesListViewController: UIViewController {
         interactor.viewDidLoad(isFirstFetch: true)
     }
     
+    // MARK: - UI Setup
     private func setupSearchBar() {
         let textField = searchController.searchBar.searchTextField
         textField.attributedPlaceholder = NSAttributedString(
@@ -139,6 +140,16 @@ final class MoviesListViewController: UIViewController {
         )
     }
     
+    // MARK: - Error Handling
+    private func showEmptyState() {
+        errorView.configure(
+            image: UIImage(systemName: "exclamationmark.magnifyingglass"),
+            text: "Oops! Unable to find movie.",
+            hideRetryButton: true
+        ) {}
+        showErrorView(true)
+    }
+    
     private func showErrorView(_ show: Bool) {
         DispatchQueue.main.async  { [weak self] in
             guard let self = self else { return }
@@ -153,6 +164,7 @@ final class MoviesListViewController: UIViewController {
         interactor.viewDidLoad(isFirstFetch: true)
     }
     
+    // MARK: - Data Handling
     private func getMovies() -> [LoadedResult] {
         guard let query = searchController.searchBar.text, !query.isEmpty else {
             return movies
@@ -164,6 +176,7 @@ final class MoviesListViewController: UIViewController {
 }
 
 extension MoviesListViewController: UICollectionViewDataSource {
+    // MARK: - UICollectionViewDataSource
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         return getMovies().count
     }
@@ -180,6 +193,7 @@ extension MoviesListViewController: UICollectionViewDataSource {
 }
 
 extension MoviesListViewController: UICollectionViewDelegate {
+    // MARK: - UICollectionViewDelegate
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         let selectedMovie = getMovies()[indexPath.item]
         router.navigateToMovieDetail(movie: selectedMovie)
@@ -187,12 +201,12 @@ extension MoviesListViewController: UICollectionViewDelegate {
 }
 
 extension MoviesListViewController: UICollectionViewDelegateFlowLayout {
+    // MARK: - UICollectionViewDelegateFlowLayout
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
         
         let width = view.frame.width/2 - 20
         return CGSize(width: width, height: 380)
     }
-    
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, insetForSectionAt section: Int) -> UIEdgeInsets {
         return UIEdgeInsets(top: 8, left: 8, bottom: 8, right: 8)
@@ -200,6 +214,7 @@ extension MoviesListViewController: UICollectionViewDelegateFlowLayout {
 }
 
 extension MoviesListViewController {
+    // MARK: - Scroll Handling
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
         if !self.activityIndicator.isAnimating {
             let position = scrollView.contentOffset.y
@@ -215,8 +230,15 @@ extension MoviesListViewController {
 }
 
 extension MoviesListViewController: UISearchResultsUpdating, UISearchBarDelegate {
+    // MARK: - UISearchResultsUpdating, UISearchBarDelegate
     func updateSearchResults(for searchController: UISearchController) {
-        isSearching = true
+        let movies = getMovies()
+        
+        if movies.isEmpty {
+            showEmptyState()
+        } else {
+            showErrorView(false)
+        }
         collectionView.reloadData()
     }
     
@@ -233,7 +255,8 @@ extension MoviesListViewController: UISearchResultsUpdating, UISearchBarDelegate
     }
 }
 
-extension MoviesListViewController: MovieListDisplayLogic {
+extension MoviesListViewController: MoviesListDisplayLogic {
+    // MARK: - MoviesListDisplayLogic
     func displayMovies(movies: [LoadedResult]) {
         self.movies.removeAll()
         self.movies.append(contentsOf: movies)
@@ -275,5 +298,3 @@ extension MoviesListViewController: MovieListDisplayLogic {
         }
     }
 }
-
-

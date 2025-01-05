@@ -1,28 +1,22 @@
 import UIKit
 
 protocol MovieListPresentationLogic {
-    func presentMoviesList(results: [MoviesResult], favoriteMovieIDs: Set<Int>) async
+    func presentMoviesList(results: [MoviesResult], loadedImages: [LoadedImage], favoriteMovieIDs: Set<Int>) async
     func presentMoviesListWithError()
-    func presentNextMoviesList(results: [MoviesResult], favoriteMovieIDs: Set<Int>) async
+    func presentNextMoviesList(results: [MoviesResult], loadedImages: [LoadedImage], favoriteMovieIDs: Set<Int>) async
     func presentNextMoviesListWithError()
     func presentFavoriteMovieChanged(movieID: Int)
 }
 
 class MovieListPresenter: MovieListPresentationLogic {
     
-    weak var viewController: MovieListDisplayLogic?
+    weak var viewController: MoviesListDisplayLogic?
     
-    func presentMoviesList(results: [MoviesResult], favoriteMovieIDs: Set<Int>) async {
+    func presentMoviesList(results: [MoviesResult], loadedImages: [LoadedImage], favoriteMovieIDs: Set<Int>) {
+        let movies = buildLoadedResults(results: results, loadedImages: loadedImages, favoriteMovieIDs: favoriteMovieIDs)
         
-        do {
-            let loadedResults = try await loadImages(for: results, favoritesMoviesIds: favoriteMovieIDs)
-            
-            DispatchQueue.main.async  { [weak self] in
-                guard let self = self else { return }
-                self.viewController?.displayMovies(movies: loadedResults)
-            }
-        } catch {
-            self.presentNextMoviesListWithError()
+        DispatchQueue.main.async { [weak self] in
+            self?.viewController?.displayMovies(movies: movies)
         }
     }
     
@@ -33,17 +27,12 @@ class MovieListPresenter: MovieListPresentationLogic {
         }
     }
     
-    func presentNextMoviesList(results: [MoviesResult], favoriteMovieIDs: Set<Int>) async {
+    func presentNextMoviesList(results: [MoviesResult], loadedImages: [LoadedImage], favoriteMovieIDs: Set<Int>) {
         
-        do {
-            let loadedResults = try await loadImages(for: results, favoritesMoviesIds: favoriteMovieIDs)
-            
-            DispatchQueue.main.async  { [weak self] in
-                guard let self = self else { return }
-                self.viewController?.displayNextMovies(movies: loadedResults)
-            }
-        } catch {
-            self.presentNextMoviesListWithError()
+        let movies = buildLoadedResults(results: results, loadedImages: loadedImages, favoriteMovieIDs: favoriteMovieIDs)
+        
+        DispatchQueue.main.async { [weak self] in
+            self?.viewController?.displayNextMovies(movies: movies)
         }
     }
     
@@ -61,52 +50,32 @@ class MovieListPresenter: MovieListPresentationLogic {
         }
     }
     
-    private func loadImages(for results: [MoviesResult], favoritesMoviesIds: Set<Int>) async throws -> [LoadedResult] {
+    private func buildLoadedResults(results: [MoviesResult], loadedImages: [LoadedImage], favoriteMovieIDs: Set<Int>) -> [LoadedResult] {
+        var loadedResults: [LoadedResult] = []
         
-        return try await withThrowingTaskGroup(of: LoadedResult.self) { group in
-            var loadedResults: [LoadedResult] = []
+        for result in results {
+            let image = loadedImages.first(where: { $0.movieID == result.id })
             
-            for result in results {
-                group.addTask {
-                    var posterImage: UIImage? = nil
-                    var backdropImage: UIImage? = nil
-                    
-                    if let posterPath = result.posterPath {
-                        let posterURL = URL(string: "\(BaseURL.imageBaseURL)\(posterPath)")!
-                        let posterData = try Data(contentsOf: posterURL)
-                        posterImage = UIImage(data: posterData)
-                    }
-                    
-                    if let backdropPath = result.backdropPath {
-                        let backdropURL = URL(string: "\(BaseURL.imageBaseURL)\(backdropPath)")!
-                        let backdropData = try Data(contentsOf: backdropURL)
-                        backdropImage = UIImage(data: backdropData)
-                    }
-                    
-                    let isFavorited = favoritesMoviesIds.contains(result.id ?? 0)
-                    
-                    
-                    return LoadedResult(
-                        genreIds: result.genreIds,
-                        id: result.id,
-                        title: result.title,
-                        overview: result.overview,
-                        backdropPath: result.backdropPath,
-                        posterPath: result.posterPath,
-                        releaseDate: result.releaseDate?.extractYear(),
-                        posterImage: posterImage,
-                        backdropImage: backdropImage,
-                        isFavorited: isFavorited
-                    )
-                }
-            }
+            let posterImage = image?.posterImageData.flatMap { UIImage(data: $0) }
+            let backdropImage = image?.backdropImageData.flatMap { UIImage(data: $0) }
             
-            for try await loadedResult in group {
-                loadedResults.append(loadedResult)
-            }
+            let loadedResult = LoadedResult(
+                genreIds: result.genreIds,
+                id: result.id,
+                title: result.title,
+                overview: result.overview,
+                backdropPath: result.backdropPath,
+                posterPath: result.posterPath,
+                releaseDate: result.releaseDate?.extractYear(),
+                posterImage: posterImage,
+                backdropImage: backdropImage,
+                isFavorited: favoriteMovieIDs.contains(result.id ?? 0)
+            )
             
-            return loadedResults
+            loadedResults.append(loadedResult)
         }
+        
+        return loadedResults
     }
 }
 

@@ -2,7 +2,7 @@ import Foundation
 
 protocol MovieDetailPresentationLogic {
     func presentAllGenres(_ genres: [Genre])
-    func presentAllGenresWithError(_ error: Error)
+    func presentAllGenresWithError()
     func presentSavedFavoriteMovie()
     func presentRemovedFavoriteMovie()
     func presentErrorDb()
@@ -32,9 +32,9 @@ class MovieDetailPresenter: MovieDetailPresentationLogic {
         }
     }
     
-    func presentAllGenresWithError(_ error: Error) {
+    func presentAllGenresWithError() {
         DispatchQueue.main.async {
-            self.viewController?.displayErrorFetchingGenres(error: error)
+            self.viewController?.displayErrorFetchingGenres()
         }
     }
     

@@ -34,7 +34,7 @@ extension UIViewController {
 
         if showCloseButton {
             let closeButton = UIBarButtonItem(
-                image: UIImage(systemName: "xmark"), // Ícone padrão do SF Symbols
+                image: UIImage(systemName: "xmark"),
                 style: .plain,
                 target: self,
                 action: closeButtonAction ?? #selector(defaultCloseButtonTapped)

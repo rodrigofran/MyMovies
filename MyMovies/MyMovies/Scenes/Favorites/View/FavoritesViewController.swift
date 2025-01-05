@@ -1,17 +1,22 @@
 import UIKit
 
+// MARK: - Protocol ViewController
 protocol FavoritesDisplayLogic: AnyObject {
     func displayFavoritesMovies(favoritesMovies: [FavoriteMovieModel])
     func displayRemovedFavoriteMovie(at indexPath: IndexPath, _ errorMessage: String)
     func displayErrorDatabase(_ errorMessage: String)
 }
 
+// MARK: - FavoritesMoviesViewController
+
 final class FavoritesMoviesViewController: UIViewController {
-    
+
+    // MARK: - Properties
     private let interactor: FavoritesBusinessLogic
     private let router: FavoritesRoutingLogic
     private var favoritesMovies: [FavoriteMovieModel] = []
     
+    // MARK: - UI Components
     private let toastView: ToastView
     private let errorView: ErrorView
     
@@ -23,14 +28,15 @@ final class FavoritesMoviesViewController: UIViewController {
         return tableView
     }()
     
-    init(interactor: FavoritesBusinessLogic,
-         router: FavoritesRoutingLogic,
-         toastView: ToastView = ToastView(),
-         errorView: ErrorView = ErrorView()
+    // MARK: - Init
+    init(
+        interactor: FavoritesBusinessLogic,
+        router: FavoritesRoutingLogic,
+        toastView: ToastView = ToastView(),
+        errorView: ErrorView = ErrorView()
     ) {
         self.interactor = interactor
         self.router = router
-        
         self.toastView = toastView
         self.errorView = errorView
         super.init(nibName: nil, bundle: nil)
@@ -40,12 +46,11 @@ final class FavoritesMoviesViewController: UIViewController {
         fatalError("init(coder:) has not been implemented")
     }
     
+    // MARK: - Lifecycle
+    
     override func viewDidLoad() {
         super.viewDidLoad()
-        self.setupNavigationBar (
-            title: "Movies List"
-        )
-        
+        setupNavigationBar(title: "Movies List")
         setupUI()
         setupErrorView()
     }
@@ -54,8 +59,9 @@ final class FavoritesMoviesViewController: UIViewController {
         super.viewWillAppear(animated)
         errorView.isHidden = true
         interactor.viewWillAppear()
-        
     }
+    
+    // MARK: - Setup Methods
     
     private func setupUI() {
         title = "Favorite Movies"
@@ -93,21 +99,25 @@ final class FavoritesMoviesViewController: UIViewController {
         )
     }
     
+    // MARK: - Error Handling
+    
     private func retryFetchingData() {
         showErrorView(false)
         interactor.viewWillAppear()
     }
     
     private func showEmptyState() {
-        errorView.configure(image: UIImage(systemName: "heart.slash.fill"),
-                            text: "Oops! You don't have any movies in your favorites yet.",
-                            hideRetryButton: true) {}
+        errorView.configure(
+            image: UIImage(systemName: "heart.slash.fill"),
+            text: "Oops! You don't have any movies in your favorites yet.",
+            hideRetryButton: true
+        ) {}
         showErrorView(true)
     }
     
     private func showErrorView(_ show: Bool) {
-        self.errorView.isHidden = !show
-        self.tableView.isHidden = show
+        errorView.isHidden = !show
+        tableView.isHidden = show
     }
 }
 
@@ -146,31 +156,35 @@ extension FavoritesMoviesViewController: UITableViewDataSource, UITableViewDeleg
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         let favoriteMovie = favoritesMovies[indexPath.row]
         
-        let dto = LoadedResult(genreIds: favoriteMovie.genresIds,
-                               id: favoriteMovie.id,
-                               title: favoriteMovie.title,
-                               overview: favoriteMovie.overview,
-                               backdropPath: nil,
-                               posterPath: nil,
-                               releaseDate: favoriteMovie.releaseDate,
-                               posterImage: nil,
-                               backdropImage: UIImage(data: favoriteMovie.imageData),
-                               isFavorited: true)
+        let dto = LoadedResult(
+            genreIds: favoriteMovie.genresIds,
+            id: favoriteMovie.id,
+            title: favoriteMovie.title,
+            overview: favoriteMovie.overview,
+            backdropPath: nil,
+            posterPath: nil,
+            releaseDate: favoriteMovie.releaseDate,
+            posterImage: nil,
+            backdropImage: UIImage(data: favoriteMovie.imageData),
+            isFavorited: true
+        )
         
         router.navigateToMovieDetail(movie: dto)
     }
-
 }
 
+// MARK: - Display Logic Methods
+
 extension FavoritesMoviesViewController: FavoritesDisplayLogic {
+    
     func displayFavoritesMovies(favoritesMovies: [FavoriteMovieModel]) {
         self.favoritesMovies = favoritesMovies
         
         if favoritesMovies.isEmpty {
             showEmptyState()
         } else {
-            self.showErrorView(false)
-            self.tableView.reloadData()
+            showErrorView(false)
+            tableView.reloadData()
         }
     }
     
@@ -182,21 +196,20 @@ extension FavoritesMoviesViewController: FavoritesDisplayLogic {
             showEmptyState()
         }
         
-        self.toastView.show(
+        toastView.show(
             message: errorMessage,
             backgroundColor: UIColor.toastPositive
         )
     }
     
     func displayErrorDatabase(_ errorMessage: String) {
-        self.toastView.show(
+        toastView.show(
             message: errorMessage,
             backgroundColor: .red
         )
     }
     
     func didFailWithError(_ error: any Error) {
-        self.showErrorView(true)
+        showErrorView(true)
     }
-    
 }

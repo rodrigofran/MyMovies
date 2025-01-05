@@ -1,9 +1,5 @@
 import UIKit
 
-protocol MoviesListConfiguratorProtocol {
-    static func configure() -> UIViewController
-}
-
 enum MoviesListConfigurator {
     static func configure() -> UIViewController  {
         let apiWorker = MovieListAPIWorker()

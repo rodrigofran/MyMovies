@@ -9,6 +9,6 @@ class FavoritesRouter: FavoritesRoutingLogic {
 
     func navigateToMovieDetail(movie: LoadedResult) {
         let movieDetailVC = MoviesDetailConfigurator.configure(movie: movie)
-        viewController?.navigationController?.present(movieDetailVC, animated: true)
+        viewController?.present(movieDetailVC, animated: true)
     }
 }

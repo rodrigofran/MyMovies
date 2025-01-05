@@ -77,4 +77,10 @@ class LoadedResult: Equatable {
     }
 }
 
+struct LoadedImage: Equatable {
+    let movieID: Int?
+    let posterImageData: Data?
+    let backdropImageData: Data?
+}
+
 
