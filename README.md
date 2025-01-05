@@ -2,6 +2,8 @@
 
 O **MyMovies** é uma aplicação iOS que permite aos usuários navegar por uma lista de filmes, acompanhar os últimos lançamentos e gerenciar uma lista personalizada de favoritos. Com recursos de pesquisa, paginação e navegação entre os detalhes dos filmes.
 
+![App Demo](https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExZnBjeXkxM2hwcm5qbDA3ZDJtdjVyZTJ5OHBrZXZqcWV0Z2M2ZDloMiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/8tPZOxniIFv0Tz5nUb/giphy.gif)
+
 
 ## 📱 Funcionalidades Principais
 
